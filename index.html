@@ -25,10 +25,10 @@ h1,h2,h3,.brand{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif
 <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
   <div class="brand text-xl font-extrabold text-violet-800">ExamPod <span class="bg-yellow-300 text-violet-900 px-1.5 rounded-md">AI</span></div>
   <div class="flex items-center gap-2 flex-wrap">
-    <select id="stream" aria-label="Select stream" class="border border-violet-200 rounded-lg px-2 py-1.5 text-sm bg-white">
-      <option>Class 5th–8th</option><option>Class 9th</option><option selected>Class 10th Boards</option><option>Class 11th</option><option>Class 12th Boards</option><option>JEE / NEET</option><option>MBBS</option><option>Commerce / CA</option><option>College Exams</option>
+    <select id="stream" aria-label="Select stream" class="border border-violet-200 rounded-lg px-2 py-1.5 text-sm bg-white max-w-[11rem] sm:max-w-none">
+      <option>Class 5th–8th</option><option>Class 9th</option><option selected>Class 10th Boards</option><option>Class 11th (Arts)</option><option>Class 11th (Commerce)</option><option>Class 11th (Non-Medical)</option><option>Class 11th (Medical)</option><option>Class 12th Boards (Arts)</option><option>Class 12th Boards (Commerce)</option><option>Class 12th Boards (Non-Medical)</option><option>Class 12th Boards (Medical)</option><option>JEE / NEET Aspirants</option><option>MBBS / Medical College</option><option>Commerce / CA / CS</option><option>Engineering / IIT &amp; College Exams</option>
     </select>
-    <button onclick="openM('upgrade')" id="credits" class="bg-yellow-300 text-violet-900 font-bold text-sm px-3 py-1.5 rounded-full">2 Free Credits Left</button>
+    <button onclick="openM('upgrade')" id="credits" class="bg-yellow-300 text-violet-900 font-bold text-sm px-3 py-1.5 rounded-full">5 Free Credits Left</button>
     </div>
 </div>
 </header>
@@ -38,7 +38,7 @@ h1,h2,h3,.brand{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif
 <div class="max-w-5xl mx-auto px-4 py-12 md:py-16">
   <h1 class="text-3xl md:text-5xl font-extrabold leading-tight max-w-3xl">Turn Chapters into 3-Min Hinglish Podcasts &amp; Full-Marks Board Answers</h1>
   <p class="mt-4 text-violet-200 max-w-xl">For Class 5th–12th Boards, JEE/NEET, MBBS, Commerce/CA and college students. Paste a question, snap a page, or name a chapter.</p>
-  <button onclick="document.getElementById('app').scrollIntoView({behavior:'smooth'})" class="mt-6 bg-yellow-300 text-violet-900 font-bold px-5 py-2.5 rounded-xl">Start with 2 free credits</button>
+  <button onclick="document.getElementById('app').scrollIntoView({behavior:'smooth'})" class="mt-6 bg-yellow-300 text-violet-900 font-bold px-5 py-2.5 rounded-xl">Start with 5 free credits</button>
 </div>
 </section>
 
@@ -48,6 +48,7 @@ h1,h2,h3,.brand{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif
   <button class="tabbtn tab-on px-4 py-2 rounded-xl font-bold text-sm border border-violet-200" data-t="t1">Marks-Based Answer</button>
   <button class="tabbtn px-4 py-2 rounded-xl font-bold text-sm border border-violet-200 bg-white" data-t="t2">Chapter to Audio Lecture</button>
   <button class="tabbtn px-4 py-2 rounded-xl font-bold text-sm border border-violet-200 bg-white" data-t="t3">Pass Blueprint &amp; Viva</button>
+  <button class="tabbtn px-4 py-2 rounded-xl font-bold text-sm border border-violet-200 bg-white" data-t="t4">Last 5-Year Important Questions</button>
 </div>
 
 <!-- TAB 1 -->
@@ -95,6 +96,19 @@ h1,h2,h3,.brand{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif
   <button onclick="genBlue(this)" data-kind="viva" class="mt-4 bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl">Build my blueprint</button>
   <div id="o3" class="mt-5"></div>
 </section>
+
+<!-- TAB 4 -->
+<section id="t4" class="tab hidden-i bg-white rounded-2xl p-5 border border-violet-100">
+  <h2 class="text-xl font-extrabold mb-3">Last 5-Year Important Questions</h2>
+  <label class="text-sm font-medium" for="pyqTopic">Subject &amp; Chapter / Topic</label>
+  <input id="pyqTopic" class="w-full border border-violet-200 rounded-xl p-3 mt-1" placeholder="e.g. Science: Chemical Reactions and Equations">
+  <label class="text-sm font-medium mt-3 block" for="pyqCat">Marks category</label>
+  <select id="pyqCat" class="w-full border border-violet-200 rounded-xl p-3 mt-1 bg-white"></select>
+  <p class="text-xs text-slate-500 mt-1">Options change with the stream you pick at the top.</p>
+  <button onclick="genPyq(this)" data-kind="ans" class="mt-4 bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl">Get important questions</button>
+  <div id="o4" class="mt-5"></div>
+</section>
+
 </main>
 
 <!-- PRICING -->
@@ -142,7 +156,7 @@ const FMT={
  5:'Exactly 5 detailed bullet points (each 2 to 3 lines, each starting with a **bold subheading**), then one final line starting with "Example:" giving a real example.',
  10:'First "### Introduction" with 2 to 3 lines. Then "### Main Points" with 6 to 8 detailed bullet points, each starting with a **bold subheading**. Then "### Conclusion" with 2 to 3 lines.'
 };
-let marks=5,free=+(ls.get('ep_free')??2),plan=ls.get('ep_plan')||'',ans=+(ls.get('ep_ans')||0),lec=+(ls.get('ep_lec')||0);
+let marks=5,free=+(ls.get('ep_free')??5),plan=ls.get('ep_plan')||'',ans=+(ls.get('ep_ans')||0),lec=+(ls.get('ep_lec')||0);
 {const e=+(ls.get('ep_exp')||0);if(!['29','59','99'].includes(plan)||(e&&Date.now()>e)){plan='';ans=0;lec=0;['ep_plan','ep_ans','ep_lec','ep_exp'].forEach(k=>ls.set(k,''))}}
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -286,8 +300,8 @@ function genPod(btn){
   run(btn,$('o2'),async()=>{
     stopAudio();
     const src=await extractSource();
-    const t=await callAI(`You are a friendly, smart senior mentor teaching a ${$('stream').value} student. ${src?'Base the lecture on this text from the student book or notes (it may contain small OCR errors):\n"""'+src+'"""':''} ${ch?'Chapter: '+ch+'.':''}
-Write ONE spoken lecture that a single voice will read aloud like an audiobook. Language: ${lang}${lang==='Hinglish'?' (Hindi in Roman script mixed with English)':lang==='Pure Hindi'?' (Devanagari script)':''}.
+    const t=await callAI(`You are a popular, warm Indian YouTube educator (like everyone's favourite bhaiya or didi) teaching a ${$('stream').value} student. ${src?'Base the lecture on this text from the student book or notes (it may contain small OCR errors):\n"""'+src+'"""':''} ${ch?'Chapter: '+ch+'.':''}
+Write ONE spoken lecture in the natural voice of a real YouTube teacher talking to one student. STYLE: warm, practical and conversational; short sentences (under 20 words); everyday Indian real-life examples; talk to the student directly (for Hinglish use words like "dekho", "socho", "samajh aaya?"; use natural equivalents in other languages); use "..." sparingly, about once every 3 to 4 sentences, at natural thinking pauses; never sound like a textbook and never read out lists robotically. Language: ${lang}${lang==='Hinglish'?' (Hindi in Roman script mixed with English)':lang==='Pure Hindi'?' (Devanagari script)':''}.
 STRICT RULES: no speaker labels, no markdown, no headings, no bullet symbols, no emojis, no stage directions. Plain spoken paragraphs only, one paragraph per line. Write formulas in words (for example "V equals I into R"), never with symbols. Length: ${target}. Do not stop early; reach this length.
 STRUCTURE: ${structure}
 MCQ SPEAKING FORMAT (inside the script): for each MCQ write one line "Question 1: <question>. Option A: <text>. Option B: <text>. Option C: <text>. Option D: <text>." then the next line containing only "..." then one line "The answer is option X, because <short reason>."
@@ -315,7 +329,9 @@ Reply in exactly this format:
       </div>
       <div class="border border-violet-100 rounded-xl p-4 mt-4"><div class="font-extrabold text-violet-800 mb-2">Lecture script</div>
         ${built.paras.map((l,i)=>`<p id="ln${i}" class="my-1.5 px-2 py-1 rounded-lg ${/^exam trap/i.test(l)?'bg-red-50 text-red-900':''}">${esc(l)}</p>`).join('')}</div>
-      ${s.MCQ?box('bg-yellow-50 border border-yellow-300','Top 5 Exam MCQs',s.MCQ):''}`;
+      ${s.MCQ?box('bg-yellow-50 border border-yellow-300','Top 5 Exam MCQs',s.MCQ):''}
+      <div id="must" class="mt-4"></div>`;
+    lastCtx={ch,src,lang,stream:$('stream').value};loadMust();
   });
 }
 
@@ -330,13 +346,20 @@ function chunkText(t){
 function buildQueue(lines){
   const q=[],paras=[];
   lines.forEach(l=>{
-    if(/^[.…\s]+$/.test(l)){q.push({pause:1,p:Math.max(paras.length-1,0)});return}
+    if(/^[.…\s]+$/.test(l)){q.push({pause:1,ms:1500,p:Math.max(paras.length-1,0)});return}
     const p=paras.push(l)-1,parts=l.replace(/\.{3,}|…/g,' §P§ ').split('§P§');
-    parts.forEach((part,i)=>{chunkText(part).forEach(t=>q.push({t,p}));if(i<parts.length-1)q.push({pause:1,p})});
+    parts.forEach((part,i)=>{chunkText(part).forEach(t=>q.push({t,p}));if(i<parts.length-1)q.push({pause:1,ms:650,p})});
   });
   return {q,paras};
 }
-function pickVoice(){const v=speechSynthesis.getVoices();return v.find(x=>x.lang===speechLang)||v.find(x=>x.lang.startsWith(speechLang.slice(0,2)))||null}
+function pickVoice(){
+  const vs=speechSynthesis.getVoices();if(!vs.length)return null;
+  const nm=re=>vs.find(v=>re.test(v.name));
+  const lg=l=>{const m=vs.filter(v=>v.lang.replace('_','-').toLowerCase()===l);return m.find(v=>/natural|online/i.test(v.name))||m[0]};
+  const gHi=nm(/Google\s*(हिन्दी|Hindi)/i),swara=nm(/Swara/i),neerja=nm(/Neerja/i),ukF=nm(/Google UK English Female/i);
+  const order=speechLang==='hi-IN'?[gHi,swara,neerja,ukF,lg('hi-in'),lg('en-in')]:[neerja,lg('en-in'),ukF,gHi,swara,lg('hi-in')];
+  return order.find(Boolean)||vs.find(v=>v.lang.toLowerCase().startsWith(speechLang.slice(0,2)))||null;
+}
 function advance(){idx++;if(pausedFlag)waiting=true;else speakNext()}
 function speakNext(){
   if(!playing)return;
@@ -345,9 +368,9 @@ function speakNext(){
   document.querySelectorAll('[id^=ln]').forEach(e=>e.classList.remove('bg-yellow-200'));
   const el=$('ln'+it.p);if(el){el.classList.add('bg-yellow-200');el.scrollIntoView({block:'nearest',behavior:'smooth'})}
   if($('now'))$('now').textContent=`Playing ${Math.round(idx/queue.length*100)}%`;
-  if(it.pause){timer=setTimeout(()=>{timer=null;advance()},1400/rate);return}
+  if(it.pause){timer=setTimeout(()=>{timer=null;advance()},(it.ms||1400)/rate);return}
   const u=new SpeechSynthesisUtterance(it.t),v=pickVoice();
-  if(v)u.voice=v;u.lang=speechLang;u.rate=rate;u.pitch=1;
+  if(v){u.voice=v;u.lang=v.lang}else u.lang=speechLang;u.rate=0.95*rate;u.pitch=1.02;if($('now'))$('now').textContent=`Playing ${Math.round(idx/queue.length*100)}% · Voice: ${v?v.name:'browser default'}`;
   u.onend=advance;u.onerror=e=>{if(e.error!=='canceled'&&e.error!=='interrupted')advance()};
   speechSynthesis.speak(u);
 }
@@ -377,6 +400,59 @@ Reply in exactly this format:
   });
 }
 
+/* Tab 4: last 5-year important questions */
+const CATS={
+ school:['2 Marks (15–20 Q&A)','3 Marks (15–20 Q&A)','5 Marks (15–20 Q&A)'],
+ senior:['2 Marks (15–20 Q&A)','3 Marks (15–20 Q&A)','4 Marks (15–20 Q&A)','5 Marks (15–20 Q&A)','6 Marks (15–20 Q&A)'],
+ exam:['High-Weightage Short Q&A (15–20 Q&A)','Long/Analytical Q&A (15–20 Q&A)','Most Repeated PYQs (15–20 Q&A)']
+};
+function streamGroup(){const v=$('stream').value;if(/^Class (5th|9th|10th)/.test(v))return 'school';if(/^Class 1[12]th/.test(v))return 'senior';return 'exam'}
+function renderCats(){
+  const sel=$('pyqCat'),prev=sel.value;
+  sel.innerHTML=CATS[streamGroup()].map(c=>`<option>${c}</option>`).join('');
+  if([...sel.options].some(o=>o.value===prev))sel.value=prev;
+}
+$('stream').addEventListener('change',renderCats);
+function genPyq(btn){
+  const topic=$('pyqTopic').value.trim();if(!topic){toast('Enter the subject and chapter or topic.',1);return}
+  const cat=$('pyqCat').value,mk=cat.match(/^(\d) Marks/);
+  const rule=mk?`Each answer is for ${mk[1]} marks, so give exactly ${mk[1]} short, clear points (for 2 marks, 2 crisp lines).`
+    :/Short/.test(cat)?'Each answer is 2 to 4 crisp lines with the key term in bold.'
+    :/Long/.test(cat)?'Each answer is a structured step-by-step or 5 to 6 point answer.'
+    :'Each answer is a concise model answer in 3 to 5 points.';
+  run(btn,$('o4'),async()=>{
+    const t=await callAI(`You are an expert Indian exam paper analyst for ${$('stream').value}. Subject/Chapter: "${topic}". Category: ${cat}.
+Using the question-paper trends of roughly the last 2, 3, 4 and 5 years of board/exam papers, write the 15 to 20 most important questions for this category, most important first.
+Answer size rule: ${rule}
+Make every answer crystal clear and easy to memorize: short simple points, key terms in **bold**.
+Do not invent exact paper years or claim a question appeared in a specific paper. Instead add one tag at the end of each question: [Very frequent], [Frequent] or [Likely], based on how often such questions appear in the trend.
+Use exactly this format for every item, with no intro or outro text:
+### Q1. <question> [tag]
+- answer point
+- answer point`,true);
+    const n=(t.match(/^###\s*Q\d+/gm)||[]).length;
+    $('o4').innerHTML='<div class="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm">These questions are AI-predicted from past exam trends. Always cross-check with your actual previous-year papers and textbook.</div>'
+      +box('bg-white border border-violet-200',(n?n+' ':'')+'Important Questions: '+esc(cat.replace(/ \(15–20 Q&A\)/,'')),t);
+  });
+}
+
+/* Bonus: must-do questions after the lecture (separate request so it never gets cut off) */
+let lastCtx=null;
+async function loadMust(){
+  const el=$('must');if(!el||!lastCtx)return;
+  const c=lastCtx;
+  el.innerHTML='<div class="text-sm text-slate-600 p-3">Preparing Must-Do Exam Questions...</div>';
+  try{
+    const t=await callAI(`You are an expert Indian exam tutor for ${c.stream}. ${c.ch?'Chapter: '+c.ch+'.':''} ${c.src?'Chapter text from the student notes (may contain OCR errors):\n"""'+c.src.slice(0,3000)+'"""':''}
+List the Must-Do exam questions from this chapter, each with a crisp, easy answer. Language: ${c.lang==='Pure Hindi'?'Hindi (Devanagari)':'simple English'}.
+Use exactly these three headings: "### 2-Mark Questions" (5 questions, each answer 2 crisp lines), "### 3-Mark Questions" (4 questions, each answer 3 short bullet points), "### 5-Mark Questions" (3 questions, each answer 5 bullet points).
+For each question write a line "**Q1.** question" and the answer below it. Use "-" for bullets. No intro or outro text.`);
+    el.innerHTML=box('bg-white border border-violet-200','Must-Do Exam Questions from this Chapter',t);
+  }catch(e){
+    el.innerHTML='<div class="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm">Could not load the Must-Do questions right now. <button onclick="loadMust()" class="underline font-bold">Try again</button></div>';
+  }
+}
+
 /* UI init */
 document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabbtn').forEach(x=>{x.classList.remove('tab-on');x.classList.add('bg-white')});
@@ -392,7 +468,7 @@ function planCard(p,i,compact){return `<div class="rounded-2xl border ${p.hot?'b
 $('plans').innerHTML=PLANS.map((p,i)=>planCard(p,i)).join('');
 $('plansM').innerHTML=PLANS.map((p,i)=>planCard(p,i)).join('');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeM('upgrade')}});
-renderMarks();refresh();
+renderMarks();renderCats();refresh();
 </script>
 </body>
 </html>
