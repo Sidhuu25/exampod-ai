@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExamPod AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+body{font-family:'DM Sans',system-ui,sans-serif;background:#F7F5FF;color:#1E1B3A}
+h1,h2,h3,.brand{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif}
+.tab-on{background:#5B21B6;color:#fff}
+.hidden-i{display:none}
+.spin{animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+:focus-visible{outline:3px solid #FACC15;outline-offset:2px}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- NAVBAR -->
+<header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-violet-100">
+<div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+  <div class="brand text-xl font-extrabold text-violet-800">ExamPod <span class="bg-yellow-300 text-violet-900 px-1.5 rounded-md">AI</span></div>
+  <div class="flex items-center gap-2 flex-wrap">
+    <select id="stream" aria-label="Select stream" class="border border-violet-200 rounded-lg px-2 py-1.5 text-sm bg-white">
+      <option>Class 5th–8th</option><option>Class 9th</option><option selected>Class 10th Boards</option><option>Class 11th</option><option>Class 12th Boards</option><option>JEE / NEET</option><option>MBBS</option><option>Commerce / CA</option><option>College Exams</option>
+    </select>
+    <button onclick="openM('upgrade')" id="credits" class="bg-yellow-300 text-violet-900 font-bold text-sm px-3 py-1.5 rounded-full">2 Free Credits Left</button>
+    </div>
+</div>
+</header>
+
+<!-- HERO -->
+<section class="bg-violet-800 text-white">
+<div class="max-w-5xl mx-auto px-4 py-12 md:py-16">
+  <h1 class="text-3xl md:text-5xl font-extrabold leading-tight max-w-3xl">Turn Chapters into 3-Min Hinglish Podcasts &amp; Full-Marks Board Answers</h1>
+  <p class="mt-4 text-violet-200 max-w-xl">For Class 5th–12th Boards, JEE/NEET, MBBS, Commerce/CA and college students. Paste a question, snap a page, or name a chapter.</p>
+  <button onclick="document.getElementById('app').scrollIntoView({behavior:'smooth'})" class="mt-6 bg-yellow-300 text-violet-900 font-bold px-5 py-2.5 rounded-xl">Start with 2 free credits</button>
+</div>
+</section>
+
+<!-- APP -->
+<main id="app" class="max-w-5xl mx-auto px-4 py-8">
+<div class="flex flex-wrap gap-2 mb-6" role="tablist">
+  <button class="tabbtn tab-on px-4 py-2 rounded-xl font-bold text-sm border border-violet-200" data-t="t1">Marks-Based Answer</button>
+  <button class="tabbtn px-4 py-2 rounded-xl font-bold text-sm border border-violet-200 bg-white" data-t="t2">Chapter to Audio Lecture</button>
+  <button class="tabbtn px-4 py-2 rounded-xl font-bold text-sm border border-violet-200 bg-white" data-t="t3">Pass Blueprint &amp; Viva</button>
+</div>
+
+<!-- TAB 1 -->
+<section id="t1" class="tab bg-white rounded-2xl p-5 border border-violet-100">
+  <h2 class="text-xl font-extrabold mb-3">Get an answer written for the marks</h2>
+  <label class="text-sm font-medium" for="q1">Question</label>
+  <textarea id="q1" rows="3" class="w-full border border-violet-200 rounded-xl p-3 mt-1" placeholder="e.g. Explain the working of a p-n junction diode."></textarea>
+  <div class="flex flex-wrap items-center gap-2 mt-3">
+    <span class="text-sm font-medium">Marks:</span>
+    <div id="marks" class="flex gap-2"></div>
+  </div>
+  <button onclick="genAnswer(this)" data-kind="ans" class="mt-4 bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl">Generate answer</button>
+  <div id="o1" class="mt-5"></div>
+</section>
+
+<!-- TAB 2 -->
+<section id="t2" class="tab hidden-i bg-white rounded-2xl p-5 border border-violet-100">
+  <h2 class="text-xl font-extrabold mb-3">Turn a chapter into a mentor audio lecture</h2>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <label class="text-sm font-medium" for="img">Upload book/notes images (up to 15) or a PDF</label>
+      <input id="img" type="file" accept="image/*,.pdf" multiple class="block w-full text-sm mt-1 border border-violet-200 rounded-xl p-2">
+      <div id="thumbs" class="flex flex-wrap gap-2 mt-2"></div>
+      <div id="fcount" class="text-xs text-slate-500 mt-1"></div>
+    </div>
+    <div>
+      <label class="text-sm font-medium" for="chap">Or type the chapter name</label>
+      <input id="chap" class="w-full border border-violet-200 rounded-xl p-3 mt-1" placeholder="e.g. Electrostatics, Class 12 Physics">
+      <label class="text-sm font-medium mt-3 block" for="lang">Language</label>
+      <select id="lang" class="w-full border border-violet-200 rounded-xl p-3 mt-1 bg-white"><option>Hinglish</option><option>Pure Hindi</option><option>Simple English</option></select>
+      <label class="text-sm font-medium mt-3 block" for="dur">Duration</label>
+      <select id="dur" class="w-full border border-violet-200 rounded-xl p-3 mt-1 bg-white"><option value="quick">Quick Revision (3–4 Mins)</option><option value="deep" selected>Deep Topic-by-Topic Lecture (7–10 Mins)</option></select>
+    </div>
+  </div>
+  <button onclick="genPod(this)" data-kind="lec" class="mt-4 bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl">Create audio lecture</button>
+  <div id="prog" class="hidden mt-4 bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm font-medium" role="status"></div>
+  <div id="o2" class="mt-5"></div>
+</section>
+
+<!-- TAB 3 -->
+<section id="t3" class="tab hidden-i bg-white rounded-2xl p-5 border border-violet-100">
+  <h2 class="text-xl font-extrabold mb-3">Find what to study to pass, and what the examiner will ask</h2>
+  <label class="text-sm font-medium" for="subj">Subject or topic</label>
+  <input id="subj" class="w-full border border-violet-200 rounded-xl p-3 mt-1" placeholder="e.g. Biochemistry (MBBS 1st year)">
+  <button onclick="genBlue(this)" data-kind="viva" class="mt-4 bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl">Build my blueprint</button>
+  <div id="o3" class="mt-5"></div>
+</section>
+</main>
+
+<!-- PRICING -->
+<section class="bg-white border-t border-violet-100">
+<div class="max-w-5xl mx-auto px-4 py-12">
+  <h2 class="text-2xl md:text-3xl font-extrabold">Pick a pass that fits your exam date</h2>
+  <div id="plans" class="grid md:grid-cols-3 gap-4 mt-6"></div>
+  <div class="mt-4 rounded-xl bg-violet-50 border border-violet-200 p-3">
+      <div class="text-sm font-bold">Already paid? Enter your Unlock Code</div>
+      <div class="text-xs text-slate-600">You will see the code on the Razorpay thank-you page after payment.</div>
+      <div class="flex gap-2 mt-2"><input id="uc1" maxlength="20" autocomplete="off" placeholder="Enter Unlock Code" class="flex-1 border border-violet-300 rounded-lg px-3 py-2 bg-white"><button onclick="unlockCode('uc1')" class="bg-violet-700 text-white font-bold px-4 rounded-lg">Unlock</button></div></div>
+  <p class="text-xs text-slate-500 mt-4">*Unlimited is subject to fair use.</p>
+</div>
+</section>
+<footer class="text-center text-xs text-slate-500 py-6">ExamPod AI · AI answers can have mistakes. Verify with your textbook.</footer>
+
+<!-- UPGRADE MODAL -->
+<div id="m-upgrade" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-white rounded-2xl p-5 w-full max-w-2xl my-auto">
+    <div class="flex justify-between items-start">
+      <div><h3 class="text-xl font-extrabold">Upgrade to keep going</h3><p class="text-sm text-slate-600">Choose a pass. After paying, enter your Unlock Code below.</p></div>
+      <button onclick="closeM('upgrade')" aria-label="Close" class="text-2xl leading-none px-2">×</button>
+    </div>
+    <div id="plansM" class="grid sm:grid-cols-3 gap-3 mt-4"></div>
+    <div class="mt-4 rounded-xl bg-violet-50 border border-violet-200 p-3">
+      <div class="text-sm font-bold">Already paid? Enter your Unlock Code</div>
+      <div class="text-xs text-slate-600">You will see the code on the Razorpay thank-you page after payment.</div>
+      <div class="flex gap-2 mt-2"><input id="uc2" maxlength="20" autocomplete="off" placeholder="Enter Unlock Code" class="flex-1 border border-violet-300 rounded-lg px-3 py-2 bg-white"><button onclick="unlockCode('uc2')" class="bg-violet-700 text-white font-bold px-4 rounded-lg">Unlock</button></div></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-sm font-medium text-white max-w-[90vw]"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const PLANS=[
+ {k:'29',p:'₹29',d:'15 Days',n:'Exam Sprint Pass',f:['15 Answers','5 Lectures'],ans:15,lec:5,days:15,url:'https://rzp.io/l/REPLACE_29'},
+ {k:'59',p:'₹59',d:'1 Month',n:'Pro Topper Pass',f:['50 Answers','20 Lectures','Viva Predictor'],ans:50,lec:20,days:30,hot:1,url:'https://rzp.io/l/REPLACE_59'},
+ {k:'99',p:'₹99',d:'1 Month',n:'All-Rounder VIP Pass',f:['Unlimited* Answers','50 Lectures','Book/PDF Scanner'],ans:999,lec:50,days:30,url:'https://rzp.io/l/REPLACE_99'}
+];
+const FMT={
+ 2:'Exactly 2 to 3 crisp one-line bullet points. No introduction, no conclusion.',
+ 3:'Exactly 3 to 4 bullet points. Each starts with a **bold subheading** followed by a one or two line explanation.',
+ 5:'Exactly 5 detailed bullet points (each 2 to 3 lines, each starting with a **bold subheading**), then one final line starting with "Example:" giving a real example.',
+ 10:'First "### Introduction" with 2 to 3 lines. Then "### Main Points" with 6 to 8 detailed bullet points, each starting with a **bold subheading**. Then "### Conclusion" with 2 to 3 lines.'
+};
+let marks=5,free=+(ls.get('ep_free')??2),plan=ls.get('ep_plan')||'',ans=+(ls.get('ep_ans')||0),lec=+(ls.get('ep_lec')||0);
+{const e=+(ls.get('ep_exp')||0);if(!['29','59','99'].includes(plan)||(e&&Date.now()>e)){plan='';ans=0;lec=0;['ep_plan','ep_ans','ep_lec','ep_exp'].forEach(k=>ls.set(k,''))}}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function toast(m,err){const t=$('toast');t.textContent=m;t.className='fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-sm font-medium text-white max-w-[90vw] '+(err?'bg-red-600':'bg-emerald-600');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add('hidden'),4000)}
+function openM(n){$('m-'+n).classList.remove('hidden')}
+function closeM(n){$('m-'+n).classList.add('hidden')}
+function md(t){t=esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');const o=[];let ul=0;for(const l of t.split('\n')){const m=l.match(/^\s*[-*•]\s+(.*)/),h=l.match(/^#{1,4}\s+(.*)/);if(m){if(!ul){o.push('<ul class="list-disc pl-5 space-y-1">');ul=1}o.push('<li>'+m[1]+'</li>');continue}if(ul){o.push('</ul>');ul=0}if(h)o.push('<h4 class="font-extrabold text-lg mt-3">'+h[1]+'</h4>');else if(l.trim())o.push('<p class="my-1">'+l+'</p>')}if(ul)o.push('</ul>');return o.join('')}
+function sect(t,keys){const r={};keys.forEach(k=>{const s=t.indexOf('##'+k+'##');if(s<0)return;let e=t.length;keys.forEach(k2=>{const p=t.indexOf('##'+k2+'##',s+1);if(p>s&&p<e)e=p});r[k]=t.slice(s+k.length+4,e).trim()});return r}
+
+/* credits + unlock */
+const save=()=>{ls.set('ep_free',free);ls.set('ep_plan',plan);ls.set('ep_ans',ans);ls.set('ep_lec',lec)};
+function refresh(){
+  const p=PLANS.find(x=>x.k===plan);
+  $('credits').textContent=p?`${p.p} pass · ${ans>=999?'Unlimited':ans} answers · ${lec} lectures`:`${free} Free Credit${free==1?'':'s'} Left`;
+}
+async function unlockCode(id){
+  const code=$(id).value.trim();if(!code){toast('Enter your unlock code.',1);return}
+  try{
+    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'unlock',code})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||d.error)throw new Error(d.error||'Wrong code.');
+    const pl=PLANS.find(x=>x.k===d.plan);if(!pl)throw new Error('Unknown plan.');
+    plan=pl.k;ans=pl.ans;lec=pl.lec;ls.set('ep_exp',Date.now()+pl.days*864e5);save();
+    $(id).value='';refresh();closeM('upgrade');toast('Unlocked: '+pl.n);
+  }catch(e){toast(e.message,1)}
+}
+function canUse(kind){
+  if(plan){
+    if(kind==='viva'&&plan==='29'){toast('Viva Predictor is in the ₹59 and ₹99 passes.',1);openM('upgrade');return false}
+    if((kind==='lec'?lec:ans)<=0){toast('Your '+(kind==='lec'?'lecture':'answer')+' credits are finished. Upgrade to continue.',1);openM('upgrade');return false}
+    return true;
+  }
+  if(free<=0){openM('upgrade');return false}
+  return true;
+}
+function spend(kind){if(plan){if(kind==='lec')lec--;else if(ans<999)ans--}else free--;save();refresh()}
+
+/* All AI calls go to our own serverless function. No API key in the browser. */
+async function callAI(prompt,long){
+  const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,long:!!long})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok||d.error)throw new Error(d.error||('Server error '+r.status));
+  return d.text;
+}
+async function run(btn,out,fn){
+  const kind=btn.dataset.kind||'ans';
+  if(!canUse(kind))return;
+  const label=btn.textContent;btn.disabled=true;btn.innerHTML='<span class="inline-block spin">◌</span> Working…';
+  out.innerHTML='';
+  try{await fn();spend(kind)}
+  catch(e){out.innerHTML='<div class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-3 text-sm"><b>Something went wrong.</b> '+esc(e.message)+'<br>Please try again in a minute.</div>'}
+  btn.disabled=false;btn.textContent=label;
+}
+const box=(cls,title,body)=>`<div class="${cls} rounded-xl p-4 mt-4"><div class="font-extrabold mb-1">${title}</div>${md(body)}</div>`;
+
+/* Tab 1 */
+function genAnswer(btn){
+  const q=$('q1').value.trim();if(!q){toast('Type a question first.',1);return}
+  run(btn,$('o1'),async()=>{
+    const t=await callAI(`You are an expert Indian exam tutor for ${$('stream').value}. Write a full-marks answer for a ${marks}-mark question: "${q}".
+STRICT FORMAT for a ${marks}-mark answer: ${FMT[marks]} Use "-" for bullets. Use simple language suited to the stream. Do not go beyond this format.
+Reply in exactly this format with these markers:
+##ANSWER##
+(answer using ### headings and - bullets)
+##MISTAKE##
+(2-3 bullets: common mistakes examiners cut marks for)
+##MNEMONIC##
+(one easy memory trick or mnemonic)`);
+    const s=sect(t,['ANSWER','MISTAKE','MNEMONIC']);
+    $('o1').innerHTML=`<div class="border border-violet-100 rounded-xl p-4"><div class="font-extrabold text-violet-800 mb-1">${marks}-Mark Answer</div>${md(s.ANSWER||t)}</div>`
+      +(s.MISTAKE?box('bg-red-50 border border-red-300 text-red-900','Screen-Checking Mistake Alert',s.MISTAKE):'')
+      +(s.MNEMONIC?box('bg-green-50 border border-green-300 text-green-900','Easy Memory Trick (Mnemonic)',s.MNEMONIC):'');
+  });
+}
+
+/* Tab 2 */
+let files=[],fid=0;
+const isPdf=f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name);
+$('img').addEventListener('change',e=>{
+  for(const f of e.target.files){
+    if(isPdf(f)){files=files.filter(x=>!x.pdf);files.push({id:++fid,file:f,pdf:true})}
+    else if(f.type.startsWith('image/')){
+      if(files.filter(x=>!x.pdf).length>=15){toast('Maximum 15 images allowed.',1);break}
+      files.push({id:++fid,file:f,url:URL.createObjectURL(f)});
+    }
+  }
+  e.target.value='';renderThumbs();
+});
+function removeFile(id){const f=files.find(x=>x.id===id);if(f&&f.url)URL.revokeObjectURL(f.url);files=files.filter(x=>x.id!==id);renderThumbs()}
+function renderThumbs(){
+  $('thumbs').innerHTML=files.map(f=>`<div class="relative">${f.pdf
+    ?`<div class="w-24 h-16 rounded-lg border border-violet-200 bg-violet-50 text-xs p-1 overflow-hidden break-all">PDF: ${esc(f.file.name)}</div>`
+    :`<img src="${f.url}" alt="Page preview" class="w-16 h-16 object-cover rounded-lg border border-violet-200">`}
+    <button onclick="removeFile(${f.id})" aria-label="Remove file" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs leading-none">×</button></div>`).join('');
+  const n=files.filter(x=>!x.pdf).length;
+  $('fcount').textContent=files.length?`${n} of 15 images${files.some(x=>x.pdf)?' + 1 PDF (first 15 pages)':''}`:'';
+}
+function fileToCanvas(file,max){return new Promise((ok,no)=>{
+  const url=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{const sc=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);ok(c)};
+  im.onerror=()=>{URL.revokeObjectURL(url);no(new Error('Could not read one of the images.'))};
+  im.src=url;
+})}
+async function extractSource(){
+  if(!files.length)return '';
+  if(!window.Tesseract||!window.pdfjsLib)throw new Error('Text reader did not load. Check your internet and reload the page.');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const prog=$('prog'),say=m=>prog.textContent=m,parts=[];
+  prog.classList.remove('hidden');say('Getting ready...');
+  let worker=null;
+  const ocr=async c=>{if(!worker){say('Loading text reader (first time can take a minute)...');worker=await Tesseract.createWorker('eng')}return (await worker.recognize(c)).data.text};
+  try{
+    const pdf=files.find(x=>x.pdf),imgs=files.filter(x=>!x.pdf);
+    let doc=null,pages=0;
+    if(pdf){doc=await pdfjsLib.getDocument({data:await pdf.file.arrayBuffer()}).promise;pages=Math.min(doc.numPages,15)}
+    const total=pages+imgs.length;let k=0;
+    for(let p=1;p<=pages;p++){
+      say(`Reading page ${++k} of ${total}...`);
+      const page=await doc.getPage(p);
+      let t=(await page.getTextContent()).items.map(i=>i.str).join(' ');
+      if(t.trim().length<30){ // scanned page: render it and run OCR
+        const vp=page.getViewport({scale:1.5}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+        await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;t=await ocr(c);
+      }
+      parts.push(t);
+    }
+    for(const f of imgs){say(`Reading page ${++k} of ${total}...`);parts.push(await ocr(await fileToCanvas(f.file,1600)))}
+  }finally{if(worker)await worker.terminate();prog.classList.add('hidden')}
+  const text=parts.join('\n').replace(/\s+/g,' ').trim();
+  if(text.length<40)throw new Error('Could not read any text from your upload. Try clearer, well-lit photos, or type the chapter name.');
+  return text.slice(0,12000);
+}
+function genPod(btn){
+  const ch=$('chap').value.trim();if(!files.length&&!ch){toast('Upload images or a PDF, or type a chapter name.',1);return}
+  if((files.length>1||files.some(x=>x.pdf))&&plan&&plan!=='99'){toast('Book/PDF Scanner is in the ₹99 VIP pass.',1);openM('upgrade');return}
+  const lang=$('lang').value,deep=$('dur').value==='deep';
+  const target=deep?'1,100 to 1,400 words (about 7 to 10 minutes spoken)':'450 to 600 words (about 3 to 4 minutes spoken)';
+  const structure=deep
+   ?'1) A warm, engaging intro with a hook. 2) Go topic by topic through EVERY core concept of the chapter: explain each in super easy everyday language with a real-life example, say any formula in words and when to use it, then end that topic with a short line starting with "Exam trap:" about mistakes to avoid. 3) A quick recap. 4) The Top 5 expected exam MCQs.'
+   :'1) A short intro. 2) The 4 to 6 most important concepts, each with one simple real-life example and any key formula said in words. 3) Two or three lines starting with "Exam trap:" about mistakes to avoid. 4) The Top 5 expected exam MCQs, kept short.';
+  run(btn,$('o2'),async()=>{
+    stopAudio();
+    const src=await extractSource();
+    const t=await callAI(`You are a friendly, smart senior mentor teaching a ${$('stream').value} student. ${src?'Base the lecture on this text from the student book or notes (it may contain small OCR errors):\n"""'+src+'"""':''} ${ch?'Chapter: '+ch+'.':''}
+Write ONE spoken lecture that a single voice will read aloud like an audiobook. Language: ${lang}${lang==='Hinglish'?' (Hindi in Roman script mixed with English)':lang==='Pure Hindi'?' (Devanagari script)':''}.
+STRICT RULES: no speaker labels, no markdown, no headings, no bullet symbols, no emojis, no stage directions. Plain spoken paragraphs only, one paragraph per line. Write formulas in words (for example "V equals I into R"), never with symbols. Length: ${target}. Do not stop early; reach this length.
+STRUCTURE: ${structure}
+MCQ SPEAKING FORMAT (inside the script): for each MCQ write one line "Question 1: <question>. Option A: <text>. Option B: <text>. Option C: <text>. Option D: <text>." then the next line containing only "..." then one line "The answer is option X, because <short reason>."
+After the script, repeat the same 5 MCQs as written text.
+Reply in exactly this format:
+##SCRIPT##
+(spoken lecture)
+##MCQ##
+(numbered MCQs with options and "Answer: X - short reason")`,true);
+    const s=sect(t,['SCRIPT','MCQ']);
+    const lines=(s.SCRIPT||t).split('\n').map(l=>l.replace(/[*#_`]+/g,'').replace(/^\s*[-•]\s+/,'').replace(/^\s*(Mentor|Speaker)\s*:\s*/i,'').trim()).filter(Boolean);
+    const built=buildQueue(lines);queue=built.q;
+    speechLang=lang==='Simple English'?'en-IN':'hi-IN';
+    const words=built.paras.join(' ').split(/\s+/).length,mins=Math.max(1,Math.round(words/150));
+    $('o2').innerHTML=`
+      <div class="bg-violet-50 border border-violet-200 rounded-xl p-4 flex flex-wrap items-center gap-2">
+        <span class="font-extrabold mr-2">Mentor audio player</span>
+        <button onclick="playAudio()" class="bg-violet-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold">▶ Play</button>
+        <button onclick="pauseAudio()" class="border border-violet-300 px-3 py-1.5 rounded-lg text-sm font-bold bg-white">⏸ Pause</button>
+        <button onclick="stopAudio()" class="border border-violet-300 px-3 py-1.5 rounded-lg text-sm font-bold bg-white">⏹ Stop</button>
+        <label class="text-sm ml-auto">Speed
+          <select id="rate" class="border border-violet-300 rounded-lg px-2 py-1 bg-white"><option value="1">1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option></select></label>
+        <div class="w-full text-xs text-slate-600">About ${mins} min at 1x · ${words} words</div>
+        <div id="now" class="w-full text-xs text-slate-600"></div>
+      </div>
+      <div class="border border-violet-100 rounded-xl p-4 mt-4"><div class="font-extrabold text-violet-800 mb-2">Lecture script</div>
+        ${built.paras.map((l,i)=>`<p id="ln${i}" class="my-1.5 px-2 py-1 rounded-lg ${/^exam trap/i.test(l)?'bg-red-50 text-red-900':''}">${esc(l)}</p>`).join('')}</div>
+      ${s.MCQ?box('bg-yellow-50 border border-yellow-300','Top 5 Exam MCQs',s.MCQ):''}`;
+  });
+}
+
+/* Audio (speechSynthesis): one mentor voice, with pauses at "..." */
+let queue=[],speechLang='hi-IN',idx=0,playing=false,pausedFlag=false,waiting=false,timer=null;
+function chunkText(t){
+  t=t.trim();if(!t)return[];
+  const out=[];let cur='';
+  t.split(/(?<=[.!?।])\s+/).forEach(x=>{if(cur&&(cur+' '+x).length>200){out.push(cur);cur=x}else cur=cur?cur+' '+x:x});
+  if(cur)out.push(cur);return out;
+}
+function buildQueue(lines){
+  const q=[],paras=[];
+  lines.forEach(l=>{
+    if(/^[.…\s]+$/.test(l)){q.push({pause:1,p:Math.max(paras.length-1,0)});return}
+    const p=paras.push(l)-1,parts=l.replace(/\.{3,}|…/g,' §P§ ').split('§P§');
+    parts.forEach((part,i)=>{chunkText(part).forEach(t=>q.push({t,p}));if(i<parts.length-1)q.push({pause:1,p})});
+  });
+  return {q,paras};
+}
+function pickVoice(){const v=speechSynthesis.getVoices();return v.find(x=>x.lang===speechLang)||v.find(x=>x.lang.startsWith(speechLang.slice(0,2)))||null}
+function advance(){idx++;if(pausedFlag)waiting=true;else speakNext()}
+function speakNext(){
+  if(!playing)return;
+  if(idx>=queue.length){playing=false;if($('now'))$('now').textContent='Finished.';return}
+  const it=queue[idx],rate=+($('rate')?.value||1);
+  document.querySelectorAll('[id^=ln]').forEach(e=>e.classList.remove('bg-yellow-200'));
+  const el=$('ln'+it.p);if(el){el.classList.add('bg-yellow-200');el.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  if($('now'))$('now').textContent=`Playing ${Math.round(idx/queue.length*100)}%`;
+  if(it.pause){timer=setTimeout(()=>{timer=null;advance()},1400/rate);return}
+  const u=new SpeechSynthesisUtterance(it.t),v=pickVoice();
+  if(v)u.voice=v;u.lang=speechLang;u.rate=rate;u.pitch=1;
+  u.onend=advance;u.onerror=e=>{if(e.error!=='canceled'&&e.error!=='interrupted')advance()};
+  speechSynthesis.speak(u);
+}
+function playAudio(){
+  if(!('speechSynthesis' in window)){toast('Your browser does not support audio playback.',1);return}
+  if(pausedFlag){pausedFlag=false;if(speechSynthesis.paused){speechSynthesis.resume();return}if(waiting){waiting=false;speakNext()}return}
+  speechSynthesis.cancel();clearTimeout(timer);idx=0;playing=true;waiting=false;speakNext();
+}
+function pauseAudio(){if(!playing)return;pausedFlag=true;if(speechSynthesis.speaking&&!speechSynthesis.paused)speechSynthesis.pause();if($('now'))$('now').textContent='Paused.'}
+function stopAudio(){playing=false;pausedFlag=false;waiting=false;idx=0;clearTimeout(timer);if('speechSynthesis' in window)speechSynthesis.cancel();document.querySelectorAll('[id^=ln]').forEach(e=>e.classList.remove('bg-yellow-200'));if($('now'))$('now').textContent='Stopped.'}
+if('speechSynthesis' in window)speechSynthesis.onvoiceschanged=()=>{};
+window.addEventListener('beforeunload',()=>speechSynthesis.cancel());
+
+/* Tab 3 */
+function genBlue(btn){
+  const s=$('subj').value.trim();if(!s){toast('Enter a subject or topic.',1);return}
+  run(btn,$('o3'),async()=>{
+    const t=await callAI(`You are an exam strategist for Indian students (${$('stream').value}). Subject/topic: "${s}".
+Reply in exactly this format:
+##CHAPTERS##
+(high-weightage chapters/topics to pass easily, as - bullets: name, why it matters, and a one-line study tip)
+##VIVA##
+(Top 10 expected viva questions, numbered, each with a short 1-2 line answer)`);
+    const x=sect(t,['CHAPTERS','VIVA']);
+    $('o3').innerHTML=box('bg-violet-50 border border-violet-200','Pass-Guarantee Blueprint: high-weightage chapters',x.CHAPTERS||t)
+      +(x.VIVA?box('bg-white border border-violet-200','Top 10 Expected Viva Questions',x.VIVA):'');
+  });
+}
+
+/* UI init */
+document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabbtn').forEach(x=>{x.classList.remove('tab-on');x.classList.add('bg-white')});
+  b.classList.add('tab-on');b.classList.remove('bg-white');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden-i'));$(b.dataset.t).classList.remove('hidden-i');
+});
+function renderMarks(){$('marks').innerHTML=[2,3,5,10].map(m=>`<button onclick="marks=${m};renderMarks()" class="px-3 py-1.5 rounded-lg text-sm font-bold border ${m===marks?'bg-violet-700 text-white border-violet-700':'bg-white border-violet-200'}">${m}</button>`).join('')}
+function planCard(p,i,compact){return `<div class="rounded-2xl border ${p.hot?'border-violet-600 border-2':'border-violet-100'} p-4 flex flex-col">
+  ${p.hot?'<div class="text-xs font-bold text-violet-700 mb-1">Most picked</div>':''}
+  <div class="brand text-3xl font-extrabold">${p.p}</div><div class="text-sm text-slate-600">${p.d} · ${p.n}</div>
+  <ul class="text-sm mt-3 space-y-1 flex-1">${p.f.map(f=>`<li>✓ ${f}</li>`).join('')}</ul>
+  <a href="${p.url}" target="_blank" rel="noopener" class="mt-4 text-center ${p.hot?'bg-violet-700 text-white':'border border-violet-300 text-violet-800'} font-bold rounded-xl py-2">Pay ${p.p} with Razorpay</a></div>`}
+$('plans').innerHTML=PLANS.map((p,i)=>planCard(p,i)).join('');
+$('plansM').innerHTML=PLANS.map((p,i)=>planCard(p,i)).join('');
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeM('upgrade')}});
+renderMarks();refresh();
+</script>
+</body>
+</html>
